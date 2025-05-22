@@ -6,24 +6,38 @@
 - [Helm](https://helm.sh/)
 - [lftp](https://lftp.yar.ru/) installed locally
 - Docker Driver for Minikube
+
 ---
 
 ## 🚀 Installation And Testing
 
-### 1. Deploy the FTP server
+### 1. Installation of Ingress NGINX
+
+To install the NGINX ingress controller, run:
+
+```bash
+helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+helm repo update
+
+helm install ingress-nginx ingress-nginx/ingress-nginx \
+  --namespace ingress-nginx --create-namespace \
+  --set controller.publishService.enabled=true
+```
+
+### 2. Deploy the FTP server
 
 ```bash
 helm install ftp ./ftp-server-chart
 ```
 
-### 2. Port-forward required ports
+### 3. Port-forward required ports
 
 ```bash
 kubectl port-forward svc/ftp-ftp-server-chart 2121:21
 kubectl port-forward svc/ftp-ftp-server-chart 21100:21100
 ```
 
-### 3. Connect using `lftp`
+### 4. Connect using `lftp`
 
 ```bash
 lftp -u testuser,testpass localhost -p 2121
