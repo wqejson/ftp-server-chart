@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "ftp-server-chart.fullname" . }}
+  labels:
+    {{- include "ftp-server-chart.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "ftp-server-chart.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "ftp-server-chart.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: ftp
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: 21
+            - containerPort: 21100
+          env:
+            - name: FTP_USER
+              value: {{ .Values.ftpUser | quote }}
+            - name: FTP_PASS
+              value: {{ .Values.ftpPass | quote }}
+            - name: PASV_ENABLE
+              value: {{ .Values.pasv.enable | quote }}
+            - name: PASV_MIN_PORT
+              value: {{ .Values.pasv.minPort | quote }}
+            - name: PASV_MAX_PORT
+              value: {{ .Values.pasv.maxPort | quote }}
+            - name: PASV_ADDRESS
+              value: {{ .Values.pasv.address | quote }}
+            - name: LOG_STDOUT
+              value: "YES"
+            - name: ANONYMOUS_ENABLE
+              value: "NO"
+          volumeMounts:
+            - name: ftp-data
+              mountPath: /home/vsftpd
+      volumes:
+        - name: ftp-data
+          persistentVolumeClaim:
+            claimName: {{ .Release.Name }}-data

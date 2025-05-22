@@ -1,0 +1,40 @@
+ftpUser: testuser
+ftpPass: testpass
+
+pvc:
+  size: 1Gi
+  storageClass: standard
+
+pasv:
+  enable: "YES"
+  minPort: 21100
+  maxPort: 21100
+  address: 127.0.0.1
+
+service:
+  type: NodePort
+  ports:
+    ftp: 21
+    pasv: 21100
+
+serviceAccount:
+  create: false
+
+autoscaling:
+  enabled: false
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+  hosts:
+    - host: ftp.local
+      paths:
+        - path: /
+          pathType: Prefix
+
+image:
+  repository: fauria/vsftpd
+  tag: latest
+  pullPolicy: IfNotPresent
