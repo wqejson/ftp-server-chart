@@ -1,27 +1,18 @@
-{{- if .Values.ingress.enabled }}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ include "ftp-server-chart.fullname" . }}
-  labels:
-    {{- include "ftp-server-chart.labels" . | nindent 4 }}
+  name: ftp-files-ingress
   annotations:
-    {{- toYaml .Values.ingress.annotations | nindent 4 }}
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
 spec:
-  ingressClassName: {{ .Values.ingress.className | default "nginx" | quote }}
   rules:
-    {{- range .Values.ingress.hosts }}
-    - host: {{ .host | quote }}
+    - host: ftp.local
       http:
         paths:
-          {{- range .paths }}
-          - path: {{ .path }}
-            pathType: {{ .pathType }}
+          - path: /
+            pathType: Prefix
             backend:
               service:
-                name: {{ include "ftp-server-chart.fullname" $ }}
+                name: ftp-http-service
                 port:
-                  number: {{ $.Values.service.ports.ftp }}
-          {{- end }}
-    {{- end }}
-{{- end }}
+                  number: 80

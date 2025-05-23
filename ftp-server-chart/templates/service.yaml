@@ -1,19 +1,18 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "ftp-server-chart.fullname" . }}
-  labels:
-    {{- include "ftp-server-chart.labels" . | nindent 4 }}
+  name: ftp-http-service
 spec:
-  type: {{ .Values.service.type }}
   selector:
-    {{- include "ftp-server-chart.selectorLabels" . | nindent 4 }}
+    app: ftp-with-http
   ports:
     - name: ftp
-      protocol: TCP
-      port: {{ .Values.service.ports.ftp }}
+      port: 21
       targetPort: 21
     - name: pasv
-      protocol: TCP
-      port: {{ .Values.service.ports.pasv }}
+      port: 21100
       targetPort: 21100
+    - name: http
+      port: 80
+      targetPort: 80
+  type: NodePort

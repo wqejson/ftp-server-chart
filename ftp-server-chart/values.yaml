@@ -33,7 +33,6 @@ ingress:
       paths:
         - path: /
           pathType: Prefix
-
 image:
   repository: fauria/vsftpd
   tag: latest

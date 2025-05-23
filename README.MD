@@ -1,19 +1,17 @@
-# FTP Server Helm Chart (Passive Mode - Single Port)
+# 📦 FTP Server Helm Chart (Passive Mode - Single Port)
 
 ## ⚙️ Prerequisites
 
 - [Minikube](https://minikube.sigs.k8s.io/)
 - [Helm](https://helm.sh/)
-- [lftp](https://lftp.yar.ru/) installed locally
-- Docker Driver for Minikube
+- [`lftp`](https://lftp.yar.ru/) installed locally
+- Docker driver enabled in Minikube
 
 ---
 
-## 🚀 Installation And Testing
+## 🚀 Installation & Usage
 
-### 1. Installation of Ingress NGINX
-
-To install the NGINX ingress controller, run:
+### 1. Install NGINX Ingress Controller
 
 ```bash
 helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
@@ -21,59 +19,69 @@ helm repo update
 
 helm install ingress-nginx ingress-nginx/ingress-nginx \
   --namespace ingress-nginx --create-namespace \
-  --set controller.publishService.enabled=true
+  --set controller.publishService.enabled=true \
+  --set controller.extraArgs.update-status=false
 ```
 
-### 2. Deploy the FTP server
+### 2. Deploy FTP server with Helm
 
 ```bash
 helm install ftp ./ftp-server-chart
 ```
 
-### 3. Port-forward required ports
+### 3. Port-forward FTP ports for testing
 
 ```bash
 kubectl port-forward svc/ftp-ftp-server-chart 2121:21
 kubectl port-forward svc/ftp-ftp-server-chart 21100:21100
 ```
 
-### 4. Connect using `lftp`
+> ⚠️ Both ports are required due to FTP passive mode data transfer.
 
-```bash
-lftp -u testuser,testpass localhost -p 2121
+### 4. Update `/etc/hosts` for Ingress
+
+Add the following line to your local `/etc/hosts` file:
+```
+127.0.0.1 ftp.local
 ```
 
-Inside `lftp`:
+### 5. Access files over HTTP
+
+Visit:
+```
+http://ftp.local/
+```
+
+You should see an auto-index listing of files uploaded via FTP.
+
+### 6. Connect using `lftp`
 
 ```bash
-ls
+lftp -u testuser,testpass -p 2121 localhost
+```
+
+Then:
+```lftp
 mkdir test
 cd test
 put file.txt
+ls
 get file.txt
 ```
 
 ---
 
-## 📡 Port Forwarding Requirements (FTP Passive Mode Explained)
+## 📡 Why You Need Both Ports
 
-The FTP protocol uses two channels:
+- **Port 21**: Control channel (login, commands)
+- **Port 21100**: Passive data channel (file transfers, `ls`, `put`, `get`)
 
-The FTP server uses port 21 for control connections (handling login and commands like ls, put) and port 21100 for passive data transfers (used for uploading/downloading files and listing directories).
-
-You must forward **both ports** because:
-- `port-forward` exposes only explicitly specified ports
-- FTP clients follow the PASV response to open a new connection to a separate port (21100 in this case)
-
-If you only forward port 21:
-- ✅ Login will work
-- ❌ `ls`/`put`/`get` will fail due to refused data connection
+Without both, FTP will connect but fail during any data action.
 
 ---
 
-🛠️ Room for Improvements
+## 🛠️ Improvements You Can Make
 
-Reduce Required Port Forwards
-
-Implement SOAPS (Secrets of Application Password Storage)
-Avoid hardcoding FTP credentials in environment variables or Helm values.
+- **Remove plaintext credentials** from `values.yaml` by using Helm secrets or external Secret references.
+- **Enable persistent storage with PVCs** (already supported via Helm).
+- **Add HTTPS with cert-manager** for `ftp.local`.
