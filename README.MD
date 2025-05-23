@@ -11,7 +11,13 @@
 
 ## 🚀 Installation & Usage
 
-### 1. Install NGINX Ingress Controller
+### 1. Enable Ingress in Minikube
+
+```bash
+minikube addons enable ingress
+```
+
+### 2. Install NGINX Ingress Controller
 
 ```bash
 helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
@@ -23,13 +29,13 @@ helm install ingress-nginx ingress-nginx/ingress-nginx \
   --set controller.extraArgs.update-status=false
 ```
 
-### 2. Deploy FTP server with Helm
+### 3. Deploy FTP server with Helm
 
 ```bash
 helm install ftp ./ftp-server-chart
 ```
 
-### 3. Port-forward FTP ports for testing
+### 4. Port-forward FTP ports for testing
 
 ```bash
 kubectl port-forward svc/ftp-ftp-server-chart 2121:21
@@ -38,14 +44,14 @@ kubectl port-forward svc/ftp-ftp-server-chart 21100:21100
 
 > ⚠️ Both ports are required due to FTP passive mode data transfer.
 
-### 4. Update `/etc/hosts` for Ingress
+### 5. Update `/etc/hosts` for Ingress
 
 Add the following line to your local `/etc/hosts` file:
 ```
 127.0.0.1 ftp.local
 ```
 
-### 5. Access files over HTTP
+### 6. Access files over HTTP
 
 Visit:
 ```
@@ -54,7 +60,7 @@ http://ftp.local/
 
 You should see an auto-index listing of files uploaded via FTP.
 
-### 6. Connect using `lftp`
+### 7. Connect using `lftp`
 
 ```bash
 lftp -u testuser,testpass -p 2121 localhost
